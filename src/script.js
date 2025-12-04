@@ -61,7 +61,7 @@ const loadingManager = new THREE.LoadingManager(
 const gltfLoader = new GLTFLoader(loadingManager)
 const textureLoader = new THREE.TextureLoader(loadingManager)
 const rgbeLoader = new RGBELoader(loadingManager)
-const audioLoader = new THREE.AudioLoader(loadingManager)
+const audioLoader = new THREE.AudioLoader()
 
 /**
  * --- AUDIO ---
