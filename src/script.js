@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
 import GUI from 'lil-gui'
 import gsap from 'gsap'
@@ -58,7 +59,12 @@ const loadingManager = new THREE.LoadingManager(
     }
 )
 
+const dracoLoader = new DRACOLoader()
+dracoLoader.setDecoderPath('/draco/')
+
 const gltfLoader = new GLTFLoader(loadingManager)
+gltfLoader.setDRACOLoader(dracoLoader)
+
 const textureLoader = new THREE.TextureLoader(loadingManager)
 const rgbeLoader = new RGBELoader(loadingManager)
 const audioLoader = new THREE.AudioLoader()
