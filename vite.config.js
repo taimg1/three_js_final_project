@@ -13,15 +13,7 @@ export default {
     {
         outDir: '../dist', // Output in the dist/ folder
         emptyOutDir: true, // Empty the folder first
-        sourcemap: false, // Disable sourcemap for production (reduces bundle size)
-        rollupOptions: {
-            output: {
-                manualChunks: {
-                    three: ['three'],
-                    gsap: ['gsap']
-                }
-            }
-        }
+        sourcemap: true // Add sourcemap
     },
     plugins:
     [
