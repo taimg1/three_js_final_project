@@ -61,7 +61,7 @@ const loadingManager = new THREE.LoadingManager(
 const gltfLoader = new GLTFLoader(loadingManager)
 const textureLoader = new THREE.TextureLoader(loadingManager)
 const rgbeLoader = new RGBELoader(loadingManager)
-const audioLoader = new THREE.AudioLoader()
+const audioLoader = new THREE.AudioLoader(loadingManager)
 
 /**
  * --- AUDIO ---
@@ -153,15 +153,20 @@ const perlinTexture = setupTexture(textureLoader.load('/textures/perlin.png'))
 // Mixed Rock Ground Textures
 const groundColorTexture = setupTexture(textureLoader.load('/textures/mixedrock/color.jpg'), 8, 8)
 const groundDispTexture = setupTexture(textureLoader.load('/textures/mixedrock/displacement.png'), 8, 8)
+const groundNormalTexture = setupTexture(textureLoader.load('/textures/mixedrock/normal.jpg'), 8, 8)
+const groundRoughnessTexture = setupTexture(textureLoader.load('/textures/mixedrock/roughness.jpg'), 8, 8)
 
 // Floor Tiles (for pedestal)
 const floorTilesColorTexture = setupTexture(textureLoader.load('/textures/floortiles/color.jpg'), 1, 1)
 const floorTilesDispTexture = setupTexture(textureLoader.load('/textures/floortiles/displacement.png'), 1, 1)
+const floorTilesNormalTexture = setupTexture(textureLoader.load('/textures/floortiles/normal.jpg'), 1, 1)
 const floorTilesRoughnessTexture = setupTexture(textureLoader.load('/textures/floortiles/roughness.jpg'), 1, 1)
 
 // Marble Tiles (for columns)
 const marbleColorTexture = setupTexture(textureLoader.load('/textures/marble/color.jpg'), 1, 1)
 const marbleDispTexture = setupTexture(textureLoader.load('/textures/marble/displacement.png'), 1, 1)
+const marbleNormalTexture = setupTexture(textureLoader.load('/textures/marble/normal.jpg'), 1, 1)
+const marbleRoughnessTexture = setupTexture(textureLoader.load('/textures/marble/roughness.jpg'), 1, 1)
 
 
 /**
@@ -176,7 +181,7 @@ scene.add(hemisphereLight)
 const directionalLight = new THREE.DirectionalLight('#ffffff', 1.2)
 directionalLight.position.set(debugObject.sunPosX, debugObject.sunPosY, debugObject.sunPosZ)
 directionalLight.castShadow = true
-directionalLight.shadow.mapSize.set(2048, 2048)
+directionalLight.shadow.mapSize.set(1024, 1024)
 directionalLight.shadow.camera.near = 1
 directionalLight.shadow.camera.far = 100
 directionalLight.shadow.normalBias = 0.05
@@ -214,6 +219,7 @@ gltfLoader.load('/models/scene.gltf', (gltf) => {
 const pedestalGeometry = new THREE.CylinderGeometry(1.8, 2.2, 1.5, 64)
 const pedestalMaterial = new THREE.MeshStandardMaterial({
     map: floorTilesColorTexture,
+    normalMap: floorTilesNormalTexture,
     roughnessMap: floorTilesRoughnessTexture,
     displacementMap: floorTilesDispTexture,
     displacementScale: 0.05,
@@ -238,8 +244,10 @@ scene.add(ring)
 // 2. Floor
 const floorMaterial = new THREE.MeshStandardMaterial({
     map: groundColorTexture,
+    normalMap: groundNormalTexture,
     displacementMap: groundDispTexture,
     displacementScale: 0.3,
+    roughnessMap: groundRoughnessTexture,
     roughness: 0.95,
     metalness: 0.02
 })
@@ -253,8 +261,10 @@ scene.add(floor)
 // 3. Columns & Fire
 const columnMaterial = new THREE.MeshStandardMaterial({
     map: marbleColorTexture,
+    normalMap: marbleNormalTexture,
     displacementMap: marbleDispTexture,
     displacementScale: 0.02,
+    roughnessMap: marbleRoughnessTexture,
     roughness: 0.3,
     metalness: 0.1
 })
