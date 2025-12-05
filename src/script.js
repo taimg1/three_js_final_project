@@ -145,6 +145,7 @@ const clampToRadius = (vec3, radius) => {
 
 // Background
 const backgroundTexture = textureLoader.load('/textures/background.jpg')
+backgroundTexture.mapping = THREE.EquirectangularReflectionMapping
 scene.background = backgroundTexture
 
 // HDR Environment Map
@@ -296,6 +297,14 @@ for(let i = 0; i < numColumns; i++) {
     shaft.receiveShadow = true
     shaft.geometry.setAttribute('uv2', shaft.geometry.attributes.uv)
     columnGroup.add(shaft)
+    
+    const colRingGeometry = new THREE.TorusGeometry(0.5, 0.08, 8, 16) 
+    const colRing = new THREE.Mesh(colRingGeometry, columnMaterial)
+    colRing.position.y = 4.5 
+    colRing.rotation.x = Math.PI * 0.5 
+    colRing.castShadow = true
+    colRing.receiveShadow = true
+    columnGroup.add(colRing)
 
     const capitalGeometry = new THREE.CylinderGeometry(0.6, 0.5, 0.6, 16)
     const capital = new THREE.Mesh(capitalGeometry, columnMaterial)
@@ -304,6 +313,14 @@ for(let i = 0; i < numColumns; i++) {
     capital.receiveShadow = true
     capital.geometry.setAttribute('uv2', capital.geometry.attributes.uv)
     columnGroup.add(capital)
+
+    const columnRingGeometry = new THREE.TorusGeometry(0.5, 0.02, 8, 16)
+    const columnRing = new THREE.Mesh(columnRingGeometry, columnMaterial)
+    columnRing.rotation.x = Math.PI * 0.5
+    columnRing.position.y = 5.1 - 0.01
+    columnRing.castShadow = true
+    columnRing.receiveShadow = true
+    columnGroup.add(columnRing)
     
     scene.add(columnGroup)
 
@@ -401,6 +418,8 @@ const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 
 camera.position.set(4, 4, 8)
 camera.add(listener)
 scene.add(camera)
+camera.add(directionalLight)
+directionalLight.position.set(2, 5, 5)
 
 const renderer = new THREE.WebGLRenderer({
     canvas: canvas,
@@ -411,14 +430,22 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
 renderer.toneMapping = THREE.ACESFilmicToneMapping
-renderer.toneMappingExposure = 1
+renderer.toneMappingExposure = 0.7
 
 const controls = new OrbitControls(camera, canvas)
+controls.target.set(0, 3.5, 0)
 controls.enableDamping = true
 controls.minDistance = 2
 controls.maxDistance = 35
 controls.enablePan = true
 
+controls.minDistance = 4   
+controls.maxDistance = 25   
+controls.maxPolarAngle = Math.PI / 2 - 0.05 
+controls.minPolarAngle = 0.1 
+
+controls.enablePan = false 
+controls.target.set(0, 3, 0)
 /**
  * --- GUI SETUP ---
  */
@@ -436,11 +463,19 @@ const setupGui = () => {
     
     gui.add(renderer, 'toneMappingExposure', 0, 3).name('Exposure')
 
-    const navFolder = gui.addFolder('Navigation')
+    const navFolder = gui.addFolder('Fly limits')
     navFolder.add(debugObject, 'platformRadius', 5, 25).name('Platform Radius')
     navFolder.add(debugObject, 'cameraMinHeight', 0.5, 5).name('Min Height')
     navFolder.add(debugObject, 'cameraMaxHeight', 2, 50).name('Max Height')
-    navFolder.add(debugObject, 'limitFlight').name('Limit Flight')
+    navFolder.add(debugObject, 'limitFlight').name('Limit Flight').onChange((value) => {
+        if(!value) {
+            controls.maxDistance = Infinity
+            controls.minDistance = 0
+        } else {
+            controls.maxDistance = 35
+            controls.minDistance = 2
+        }
+    })
 
     const audioFolder = gui.addFolder('Music')
     audioFolder.add(audioControls, 'play').name('▶ Play')
