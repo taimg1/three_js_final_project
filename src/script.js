@@ -15,9 +15,10 @@ import firefliesFragmentShader from './shaders/fireflies/fragment.glsl'
  */
 const gui = new GUI()
 const debugObject = {
-    sunPosX: 20,
-    sunPosY: 30,
-    sunPosZ: 20,
+    // Sun position adjusted to match HDR background - sun is on the LEFT side
+    sunPosX: 40.2,
+    sunPosY: 20.5,
+    sunPosZ: 36.6,
     groundDisplacementScale: 0,
     platformRadius: 14.5,
     cameraMinHeight: 1.2,
@@ -418,8 +419,8 @@ const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 
 camera.position.set(4, 4, 8)
 camera.add(listener)
 scene.add(camera)
-camera.add(directionalLight)
-directionalLight.position.set(2, 5, 5)
+// camera.add(directionalLight)
+// directionalLight.position.set(2, 5, 5)
 
 const renderer = new THREE.WebGLRenderer({
     canvas: canvas,
@@ -433,19 +434,39 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping
 renderer.toneMappingExposure = 0.7
 
 const controls = new OrbitControls(camera, canvas)
-controls.target.set(0, 3.5, 0)
+controls.target.set(0, 3, 0)
 controls.enableDamping = true
-controls.minDistance = 2
-controls.maxDistance = 35
-controls.enablePan = true
-
+controls.dampingFactor = 0.08
 controls.minDistance = 4   
 controls.maxDistance = 25   
 controls.maxPolarAngle = Math.PI / 2 - 0.05 
 controls.minPolarAngle = 0.1 
+controls.enablePan = false
 
-controls.enablePan = false 
-controls.target.set(0, 3, 0)
+controls.addEventListener('change', () => {
+    if (!debugObject.limitFlight) return
+    
+    const platformR = debugObject.platformRadius
+    const margin = 0.5
+    const maxR = Math.max(2, platformR - margin)
+
+    const targetDistXZ = Math.sqrt(controls.target.x * controls.target.x + controls.target.z * controls.target.z)
+    if (targetDistXZ > maxR) {
+        const scale = maxR / targetDistXZ
+        controls.target.x *= scale
+        controls.target.z *= scale
+    }
+    controls.target.y = clamp(controls.target.y, 0, debugObject.cameraMaxHeight)
+
+    camera.position.y = clamp(camera.position.y, debugObject.cameraMinHeight, debugObject.cameraMaxHeight)
+
+    const camDistXZ = Math.sqrt(camera.position.x * camera.position.x + camera.position.z * camera.position.z)
+    if (camDistXZ > maxR) {
+        const scale = maxR / camDistXZ
+        camera.position.x *= scale
+        camera.position.z *= scale
+    }
+})
 /**
  * --- GUI SETUP ---
  */
@@ -525,29 +546,6 @@ const tick = () => {
     fireMeshes.forEach((fireMesh) => {
         fireMesh.lookAt(camera.position.x, fireMesh.position.y, camera.position.z)
     })
-
-    controls.update()
-
-    if (debugObject.limitFlight) {
-    const platformR = debugObject.platformRadius
-    const margin = 0.5
-    const maxR = Math.max(2, platformR - margin)
-
-    clampToRadius(controls.target, maxR)
-    controls.target.y = clamp(controls.target.y, 0, debugObject.cameraMaxHeight)
-
-    const relX = camera.position.x - controls.target.x
-    const relZ = camera.position.z - controls.target.z
-    const distXZ = Math.sqrt(relX * relX + relZ * relZ)
-    if(distXZ > maxR) {
-        const scale = maxR / distXZ
-        camera.position.x = controls.target.x + relX * scale
-        camera.position.z = controls.target.z + relZ * scale
-    }
-
-    camera.position.y = clamp(camera.position.y, debugObject.cameraMinHeight, debugObject.cameraMaxHeight)
-
-    }
 
     controls.update()
     renderer.render(scene, camera)
